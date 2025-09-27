@@ -110,6 +110,86 @@ write_verilog -noattr good_mux_netlist.v
 !gvim file_name.v
 # Open and interact with netlist using GVim
 ```
+## 📅 Day-2 – Introduction to Liberty Files, Cell Characterization & Synthesis Styles
+
+### 🔹 Topics Covered
+1. **What is a Liberty (.lib) file?**
+   - The Liberty file (`.lib`) is a standard format that describes standard-cell libraries used by synthesis and place-and-route tools.
+   - It contains cell names, timing (delay), power, area, and operating conditions (characterized points).
+   - Example library used in labs:
+     ```
+     sky130_fd_sc_hd__tt_025C_1v80.lib
+     ```
+   - Typical sections/attributes found in a `.lib`:
+     - **library name** and metadata
+     - **operating conditions**: process corner (p), voltage (v), temperature (t)
+     - **cell definitions**: gates, flops, buffers, inverters
+     - **timing arcs** and timing tables (input->output delays)
+     - **power data**: leakage, dynamic energy
+     - **area** for each cell
+
+2. **P, V, T (Process / Voltage / Temperature)**
+   - Cells are characterized across combinations of P/V/T (for example: typical-typical corner: `tt`, `0.25µm` or `025C` in file name, `1.80V`).
+   - Tools pick the correct timing/power tables based on the chosen operating condition.
+
+3. **Different cell types & variants**
+   - **AND gates**: 2-input, 3-input, multi-input — each has different timing/power/area.
+   - **Fast cells vs Slow cells**
+     - Fast cells: lower delay, usually larger area and higher dynamic power.
+     - Slow cells: higher delay, smaller area, lower power.
+   - Liberty stores per-cell timing and power so synthesis/technology mapping (e.g., `abc` or `dfflibmap`) can select cells based on constraints.
+
+4. **Hierarchical vs Flattened Synthesis**
+   - **Hierarchical synthesis** preserves module boundaries (useful for reuse, incremental flows).
+   - **Flattened synthesis** removes hierarchy and produces a flat gate-level netlist — can expose more optimization opportunities at the top level.
+   - Use-case:
+     - When multiple instances of the same module exist, hierarchical (module-level) synthesis allows `divide-and-conquer` and faster incremental runs.
+     - Top-level flattening can enable cross-module optimizations for best global netlist.
+
+5. **Why synth -top (module-level) is used**
+   - `synth -top <module>` runs synthesis focusing on a specific top module level.
+   - Helps control scope (faster iterations), avoid unnecessarily flattening large designs, and get a better netlist for the intended top-level module.
+
+6. **Flop coding styles & glitches**
+   - Studied flop styles (edge-triggered DFFs) with **synchronous** and **asynchronous** reset/set.
+   - Relationship between flops and glitches:
+     - Combinational logic can produce glitches due to input changes and differing path delays.
+     - Using flops as storage elements (registering signals) avoids ripple-through transient glitches by sampling stable values on the clock edge.
+     - More combinational depth → higher chance of transient glitches — register boundaries reduce this.
+
+7. **Practical experiments**
+   - Synthesized DFF circuits (sync and async reset/set) and observed waveforms for:
+     - `dff_asyncres`
+     - `dff_async_set`
+     - `dff_syncreset` (if present)
+   - Took screenshots of waveforms and compared behavior (reset timing, metastability behaviors, etc.).
+
+---
+
+### 🔹 Commands used in the lab & what they do
+```bash
+# 1) Yosys / synthesis example (module-level)
+yosys
+read_liberty -lib /home/vicky/VLSI/sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog good_mux.v
+synth -top good_mux
+abc -liberty /home/vicky/VLSI/sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog /home/vicky/VLSI_Netlist/good_mux_netlist.v
+write_verilog -noattr good_mux_netlist.v
+
+# 2) Flattening (remove hierarchy for gate-level)
+flatten
+# Use this when you want a flat gate-level netlist for top-level analysis.
+
+# 3) Mapping DFFs and other cells using liberty
+dfflibmap -liberty /home/vicky/VLSI/sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+# dfflibmap maps register constructs to library flops, creating accurate flop instances.
+
+# 4) Open files with gvim (useful for viewing multiple files)
+gvim mult_*.v -o
+```
+
 
 Hierarchical vs Flat Synthesis
 
