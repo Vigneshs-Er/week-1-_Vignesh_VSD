@@ -248,10 +248,99 @@ gvim dff_const*.v -o
 ### These techniques are applied automatically by Yosys if enabled.
 ### Screenshots of retimed/cloned netlists can be captured for analysis.
 
+# 📅 Day 4 – Logic Optimization
+
+This day covers **Logic Optimization** techniques in Yosys, including both combinational and sequential optimization methods.  
+Optimization reduces redundant logic, simplifies designs, improves area, and helps the circuit run efficiently.
+
+---
+
+## 🔹 Types of Logic Optimization
+
+1. **Combinational Logic Optimization**
+   - **Constant Propagation** → Replaces logic driven by constants with fixed values.
+   - **Boolean Logic Optimization** → Simplifies Boolean expressions (e.g., `A & 1 = A`, `A | 0 = A`).
+
+2. **Sequential Logic Optimization**
+   - **Basic**: Sequential Constant Propagation.
+   - **Advanced**: Retiming, State Optimization, Sequential Logic Cloning.
+
+---
+
+## 🔹 Sequential Constant Propagation
+
+Example: **D Flip-Flop with Set and Reset inputs**
+
+- **Case 1: Reset DFF (D-input grounded)**  
+  → Output becomes constant `0`.
+
+- **Case 2: Set DFF (D-input grounded)**  
+  → Output toggles between `0` and `1` because of the set input.  
+  Even though the D-input is constant, behavior depends on the set signal.
+
+➡️ Therefore, depending on input conditions, Yosys may optimize out the DFF cell entirely if its output is constant.
+
+---
+
+## 🔹 State Optimization
+
+- Removes **unused states** in sequential circuits.  
+- Example:  
+  In a 3-bit counter, if output `Q` only depends on `count[0]`, the other two bits (`count[1]` and `count[2]`) are unused → Yosys eliminates unnecessary logic.  
+  But if output depends on all three, then full logic is retained.
+
+---
+
+## 🔹 Retiming
+
+- Technique to redistribute registers (DFFs) across the circuit.  
+- **Slack** is balanced equally → system works at higher clock speed.  
+- ⚠️ Retiming **does not reduce total delay**; it only balances pipeline stages.
+
+---
+
+## 🔹 Cloning (Physical-Aware Optimization)
+
+- Duplicate sequential logic (DFFs) to reduce fanout load.  
+- Helps timing closure during physical design.
+
+---
+
+# 🧪 Lab Work
+
+### Step 1: List optimization-related files
+```
+ls *
+```
+Step 2: Run Optimization and Cleaning
+```
+yosys
+opt_clean -purge
+
+    opt_clean -purge → removes unused logic gates, redundant wires, and constants.
+```
+Step 3: Link Technology Library
+```
+read_liberty -lib ../sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+```
+    Loads standard cell library for mapping.
+
+Step 4: Read Verilog Design (DFF examples)
+```
+read_verilog dff_const4.v
+read_verilog dff_const5.v
+```
+Step 5: Synthesize with D Flip-Flops
+```
+synth -top dff_const4
+synth -top dff_const5
+```
+    Yosys may optimize out unused flip-flops if outputs are constants.
+
+Step 6: Example – Counter Optimization
+
+    Case 1: Q = count[0] → Only logic for LSB is kept.
+
+    Case 2: Q depends on all bits → Full counter logic is implemented.
 
 
-Hierarchical vs Flat Synthesis
-
-Hierarchical synthesis → Preserves module boundaries
-
-Flattened synthesis → Direct gate-level design without hierarchy
