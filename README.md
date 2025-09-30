@@ -50,8 +50,7 @@ Observed output in GTKWave
 
 ## Interpreted waveforms for correct functionality
 
-(Insert simulation waveform image here)
-➡️ ![MUX Simulation Output](images/mux_simulation.png)
+![Yosys Installation](https://github.com/Vigneshs-Er/vignesh-vsd-hdp/blob/main/Images/Screenshot%20from%202025-09-19%2014-07-20.png)
 
 GVim Commands & Netlist Exploration
 
@@ -212,7 +211,8 @@ opt_clean -purge
 ### Ensures that only relevant logic remains for subsequent mapping.
 
 # Step 3: Map D flip-flops to standard library cells
-```dfflibmap -liberty /home/vicky/VLSI/sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+```
+dfflibmap -liberty /home/vicky/VLSI/sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 ```
 ### Infers DFFs in the design and maps them to library flip-flop cells.
 ### - This step converts RTL-level DFFs to actual gate-level cells.
@@ -238,7 +238,11 @@ gvim dff_const*.v -o
 # Step 6: State Optimization
 ### Optimizer removes unused FSM states to reduce logic complexity.
 ### Example: 3-bit counter
-### - Case 1: q <= count[0];  => Only LSB is used, other 2 bits logic removed.
+### - Case 1:
+```
+q <= count[0]; 
+=> Only LSB is used, other 2 bits logic removed.
+```
 ### - Case 2: Full 3-bit logic participates in output calculation => entire counter logic preserved.
 ### This demonstrates how unused output optimization reduces gate count.
 
